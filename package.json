@@ -1,0 +1,16 @@
+{
+  "name": "price_notifier",
+  "version": "1.0.0",
+  "description": "Notifies list of user of negative energy prices through SMS or whatsapp",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Jan Buiter",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "entsoe-api": "0.0.3",
+    "twilio": "^3.81.0"
+  }
+}
