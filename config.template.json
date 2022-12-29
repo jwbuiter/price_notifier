@@ -1,6 +1,10 @@
 {
+  "entsoeKey": "",
   "accountSid": "",
   "authToken": "",
   "senderPhoneNumber": "",
-  "ownerPhoneNumber": ""
+  "ownerPhoneNumber": "",
+  "priceLimit": 0,
+  "users": {
+  }
 }
