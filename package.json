@@ -10,7 +10,8 @@
   "author": "Jan Buiter",
   "license": "UNLICENSED",
   "dependencies": {
-    "entsoe-api": "0.0.3",
+    "adm-zip": "^0.4.7",
+    "xml2json": "^0.9.1",
     "twilio": "^3.81.0"
   }
 }

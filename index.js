@@ -1,4 +1,4 @@
-require("entsoe-api");
+require("./entsoe-api");
 const fs = require("fs");
 
 const {
@@ -76,12 +76,17 @@ getPriceData().then((dataPoints) => {
 
   let addInterval = (hour, price) => {
     negativeIntervals.push(
-      `Van ${hour} tot ${hour + 1} : €${price.toFixed(3)}`
+      `Van ${hour} tot ${hour + 1} : €${price
+        .toPrecision(3)
+        .replace(/0+$/, "")}`
     );
   };
 
   for (const point of dataPoints) {
     const hour = point.position - 1;
+
+    if (hour < 7) continue;
+    if (hour > 19) break;
     const price = Number(point["price.amount"]) / 1000;
 
     if (price < priceLimit) addInterval(hour, price);
