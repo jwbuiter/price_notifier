@@ -35,6 +35,7 @@ function messageUsers(parameters) {
     ...parameters,
     name: "Willem",
   });
+  console.log(ownerMessage);
   sendMessage(ownerPhoneNumber, ownerMessage);
 
   for (const userPhoneNumber in users) {
@@ -43,7 +44,6 @@ function messageUsers(parameters) {
       ...users[userPhoneNumber],
     });
 
-    console.log(message);
     sendMessage(userPhoneNumber, message);
   }
 }

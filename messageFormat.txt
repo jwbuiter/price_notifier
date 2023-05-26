@@ -1,7 +1,7 @@
 Beste {name},
 
 U heeft een abonnement op mijn waarschuwingssysteem voor negatieve prijzen.
-Vandaag zullen de prijzen op de Epex-beurs onder nul komen tijdens de volgende uren:
+Vandaag zullen de prijzen op de Epex-beurs onder €{priceLimit} komen tijdens de volgende uren:
 
 {negativeIntervals}
 
