@@ -10,8 +10,7 @@
   "author": "Jan Buiter",
   "license": "UNLICENSED",
   "dependencies": {
-    "adm-zip": "^0.4.7",
-    "xml2json": "^0.9.1",
-    "twilio": "^3.81.0"
+    "twilio": "^3.81.0",
+    "xml-js": "^1.6.11"
   }
 }

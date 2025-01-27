@@ -1,6 +1,5 @@
 const https = require("https");
-var AdmZip = require("adm-zip");
-var xmlParser = require("xml2json");
+var convert = require("xml-js");
 
 ENTSOEapi = function (webapikey) {
   this.webkey = webapikey;
@@ -34,21 +33,7 @@ ENTSOEapi.buildPeriod = function (date) {
 };
 
 ENTSOEapi.parseData = function (databuffer) {
-  var ret = "";
-  try {
-    var zip = new AdmZip(databuffer);
-    var zipEntries = zip.getEntries();
-    ret = "[";
-    for (var i = 0; i < zipEntries.length; i++) {
-      ret += ENTSOEapi.parseData(zipEntries[i].getData());
-      ret += ",";
-    }
-    ret = ret.substr(0, ret.length - 1);
-    ret += "]";
-  } catch (e) {
-    ret = xmlParser.toJson(databuffer.toString());
-  }
-  return ret;
+  return convert.xml2json(databuffer.toString(), { compact: true, spaces: 4 });
 };
 
 ENTSOEapi.prototype.getData = function (options, callback) {
