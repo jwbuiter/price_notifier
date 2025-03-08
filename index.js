@@ -87,7 +87,7 @@ getPriceData().then((dataPoints) => {
 
     if (hour < 7) continue;
     if (hour > 19) break;
-    const price = Number(point["price.amount"]) / 1000;
+    const price = Number(point["price.amount"]._text) / 1000;
 
     if (price < priceLimit) addInterval(hour, price);
   }
