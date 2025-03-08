@@ -16,6 +16,20 @@ const client = require("twilio")(accountSid, authToken);
 const entsoeApi = new ENTSOEapi(entsoeKey);
 
 function formatMessage(formatString, parameters) {
+  if (parameters.formattedMessage === undefined)
+    parameters.formattedMessage = "";
+
+  parameters.formattedMessage += parameters.negativeIntervals
+    .filter((interval) => interval.price < parameters.priceLimit)
+    .map((interval) => {
+      return `Van ${interval.hour} tot ${interval.hour + 1} : €${interval.price
+        .toPrecision(3)
+        .replace(/0+$/, "")}`;
+    })
+    .join(", ");
+
+  if (parameters.formattedMessage === "") return "";
+
   let result = formatString;
   for (const value in parameters) {
     result = result.replace(`{${value}}`, parameters[value]);
@@ -36,6 +50,8 @@ function messageUsers(parameters) {
     name: "Willem",
   });
   console.log(ownerMessage);
+
+  return;
   sendMessage(ownerPhoneNumber, ownerMessage);
 
   for (const userPhoneNumber in users) {
@@ -43,6 +59,8 @@ function messageUsers(parameters) {
       ...parameters,
       ...users[userPhoneNumber],
     });
+
+    if (message === "") continue;
 
     sendMessage(userPhoneNumber, message);
   }
@@ -61,47 +79,62 @@ function getPriceData() {
     periodEnd: ENTSOEapi.buildPeriod(periodEnd),
   };
 
-  return new Promise((resolve) => {
-    entsoeApi.getData(query, function (data) {
-      var ret = JSON.parse(ENTSOEapi.parseData(data));
-      let series = ret.Publication_MarketDocument.TimeSeries;
-      if (Array.isArray(series)) series = series[0];
-      resolve(series.Period.Point);
-    });
+  return new Promise((resolve, reject) => {
+    try {
+      entsoeApi.getData(query, function (data) {
+        try {
+          var ret = JSON.parse(ENTSOEapi.parseData(data));
+          let series = ret.Publication_MarketDocument.TimeSeries;
+          if (Array.isArray(series)) series = series[0];
+          resolve(series.Period.Point);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    } catch (e) {
+      reject(e);
+    }
   });
 }
 
-getPriceData().then((dataPoints) => {
-  let negativeIntervals = [];
+async function main() {
+  try {
+    let dataPoints = await getPriceData();
+    let negativeIntervals = [];
 
-  let addInterval = (hour, price) => {
-    negativeIntervals.push(
-      `Van ${hour} tot ${hour + 1} : €${price
-        .toPrecision(3)
-        .replace(/0+$/, "")}`
-    );
-  };
+    for (const point of dataPoints) {
+      const hour = Number(point.position._text) - 1;
 
-  for (const point of dataPoints) {
-    const hour = point.position - 1;
+      if (hour < 7) continue;
+      if (hour > 19) break;
+      const price = Number(point["price.amount"]._text) / 1000;
 
-    if (hour < 7) continue;
-    if (hour > 19) break;
-    const price = Number(point["price.amount"]._text) / 1000;
+      if (price < priceLimit) negativeIntervals.push({ hour, price });
+    }
 
-    if (price < priceLimit) addInterval(hour, price);
+    if (negativeIntervals.length == 0) {
+      console.log("Price will be above limit for the entire day");
+      return;
+    }
+
+    const parameters = {
+      date: new Date().toLocaleDateString("nl-NL"),
+      priceLimit,
+      negativeIntervals,
+    };
+
+    messageUsers(parameters);
+  } catch (e) {
+    const errorMessage = formatMessage(messageFormat, {
+      date: new Date().toLocaleDateString("nl-NL"),
+      priceLimit: 0,
+      formattedMessage: "Error when sending price notifications: " + e,
+      negativeIntervals: [],
+      name: "Willem",
+    });
+    console.log(errorMessage);
+    sendMessage(ownerPhoneNumber, errorMessage);
   }
+}
 
-  if (negativeIntervals.length == 0) {
-    console.log("Price will be above limit for the entire day");
-    return;
-  }
-
-  const parameters = {
-    date: new Date().toLocaleDateString("nl-NL"),
-    priceLimit,
-    negativeIntervals: negativeIntervals.join(", "),
-  };
-
-  messageUsers(parameters);
-});
+main();

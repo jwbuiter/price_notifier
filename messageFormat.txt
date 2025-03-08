@@ -3,7 +3,7 @@ Beste {name},
 U heeft een abonnement op mijn waarschuwingssysteem voor negatieve prijzen.
 Vandaag zullen de prijzen op de Epex-beurs onder €{priceLimit} komen tijdens de volgende uren:
 
-{negativeIntervals}
+{formattedMessage}
 
 Het is aan u om hierop actie te ondernemen (omvormers uit zetten)
  
