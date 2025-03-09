@@ -51,7 +51,6 @@ function messageUsers(parameters) {
   });
   console.log(ownerMessage);
 
-  return;
   sendMessage(ownerPhoneNumber, ownerMessage);
 
   for (const userPhoneNumber in users) {
