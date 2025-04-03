@@ -2,9 +2,9 @@
   "entsoeKey": "",
   "accountSid": "",
   "authToken": "",
+  "contentSid": "HXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
   "senderPhoneNumber": "",
   "ownerPhoneNumber": "",
   "priceLimit": 0,
-  "users": {
-  }
+  "users": {}
 }

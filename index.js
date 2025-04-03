@@ -5,22 +5,20 @@ const {
   entsoeKey,
   accountSid,
   authToken,
+  contentSid,
   senderPhoneNumber,
   ownerPhoneNumber,
   priceLimit,
   users,
 } = require("./config");
-const messageFormat = fs.readFileSync("./messageFormat.txt").toString();
 
 const client = require("twilio")(accountSid, authToken);
 const entsoeApi = new ENTSOEapi(entsoeKey);
 
-function formatMessage(formatString, parameters) {
-  if (parameters.formattedMessage === undefined)
-    parameters.formattedMessage = "";
-
-  parameters.formattedMessage += parameters.negativeIntervals
-    .filter((interval) => interval.price < parameters.priceLimit)
+function formatIntervals(negativeIntervals, priceLimit) {
+  let formattedIntervals = "";
+  formattedIntervals += negativeIntervals
+    .filter((interval) => interval.price < priceLimit)
     .map((interval) => {
       return `Van ${interval.hour} tot ${interval.hour + 1} : €${interval.price
         .toPrecision(3)
@@ -28,40 +26,42 @@ function formatMessage(formatString, parameters) {
     })
     .join(", ");
 
-  if (parameters.formattedMessage === "") return "";
-
-  let result = formatString;
-  for (const value in parameters) {
-    result = result.replace(`{${value}}`, parameters[value]);
-  }
-  return result;
+  return formattedIntervals;
 }
 
-function sendMessage(recipientNumber, message) {
+function sendMessage(recipientNumber, contentVariables) {
+  console.log(contentSid);
   client.messages
-    .create({ body: message, from: senderPhoneNumber, to: recipientNumber })
+    .create({
+      contentSid,
+      from: senderPhoneNumber,
+      to: recipientNumber,
+      contentVariables: JSON.stringify(contentVariables),
+    })
     .then((message) => console.log(message.sid))
     .catch((err) => console.log(err));
 }
 
 function messageUsers(parameters) {
-  const ownerMessage = formatMessage(messageFormat, {
-    ...parameters,
-    name: "Willem",
-  });
-  console.log(ownerMessage);
-
-  sendMessage(ownerPhoneNumber, ownerMessage);
+  const ownerVariables = {
+    1: "Willem",
+    2: parameters.priceLimit,
+    3: formatIntervals(parameters.negativeIntervals, parameters),
+  };
+  console.log(ownerVariables);
+  sendMessage(ownerPhoneNumber, ownerVariables);
 
   for (const userPhoneNumber in users) {
-    const message = formatMessage(messageFormat, {
-      ...parameters,
-      ...users[userPhoneNumber],
-    });
+    let user = users[userPhoneNumber];
+    const variables = {
+      1: user.name,
+      2: user.priceLimit || parameters.priceLimit,
+      3: formatIntervals(parameters.negativeIntervals, parameters),
+    };
 
-    if (message === "") continue;
+    if (variables[3] === "") continue;
 
-    sendMessage(userPhoneNumber, message);
+    sendMessage(userPhoneNumber, variables);
   }
 }
 
@@ -124,15 +124,13 @@ async function main() {
 
     messageUsers(parameters);
   } catch (e) {
-    const errorMessage = formatMessage(messageFormat, {
-      date: new Date().toLocaleDateString("nl-NL"),
-      priceLimit: 0,
-      formattedMessage: "Error when sending price notifications: " + e,
-      negativeIntervals: [],
-      name: "Willem",
-    });
-    console.log(errorMessage);
-    sendMessage(ownerPhoneNumber, errorMessage);
+    let errorVariables = {
+      1: "Willem",
+      2: 0,
+      3: "Error when sending price notifications: " + e,
+    };
+    console.log(errorVariables);
+    sendMessage(ownerPhoneNumber, errorVariables);
   }
 }
 
