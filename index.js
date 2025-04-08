@@ -30,7 +30,7 @@ function formatIntervals(negativeIntervals, priceLimit) {
 }
 
 function sendMessage(recipientNumber, contentVariables) {
-  console.log(contentSid);
+  console.log(contentVariables);
   client.messages
     .create({
       contentSid,
@@ -45,18 +45,18 @@ function sendMessage(recipientNumber, contentVariables) {
 function messageUsers(parameters) {
   const ownerVariables = {
     1: "Willem",
-    2: parameters.priceLimit,
-    3: formatIntervals(parameters.negativeIntervals, parameters),
+    2: String(parameters.priceLimit),
+    3: formatIntervals(parameters.negativeIntervals, parameters.priceLimit),
   };
-  console.log(ownerVariables);
   sendMessage(ownerPhoneNumber, ownerVariables);
 
   for (const userPhoneNumber in users) {
     let user = users[userPhoneNumber];
+    let priceLimit = user.priceLimit || parameters.priceLimit;
     const variables = {
       1: user.name,
-      2: user.priceLimit || parameters.priceLimit,
-      3: formatIntervals(parameters.negativeIntervals, parameters),
+      2: String(priceLimit),
+      3: formatIntervals(parameters.negativeIntervals, priceLimit),
     };
 
     if (variables[3] === "") continue;
@@ -126,10 +126,10 @@ async function main() {
   } catch (e) {
     let errorVariables = {
       1: "Willem",
-      2: 0,
-      3: "Error when sending price notifications: " + e,
+      2: "0",
+      3: ("Error when sending price notifications: " + e).replaceAll("'", ""),
     };
-    console.log(errorVariables);
+    console.log(e);
     sendMessage(ownerPhoneNumber, errorVariables);
   }
 }
